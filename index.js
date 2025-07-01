@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const app = express();
+
 app.use(cors());
 app.use(express.json());
 
@@ -8,7 +9,7 @@ let tasks = [];
 
 app.post('/Login', (req, res) => {
     const { username } = req.body;
-    if (username) {
+    if (username && username.trim() !== '') {
         return res.json({ token: 'fake-token-' + username });
     }
     return res.status(400).json({ error: 'Usuário inválido' });
@@ -16,18 +17,22 @@ app.post('/Login', (req, res) => {
 
 app.get('/identified/getData', (req, res) => {
     const token = req.headers.authorization;
-    if (!token) return res.status(401).json({ error: 'Sem token' });
+    if (!token) return res.status(401).json({ error: 'Token ausente' });
     return res.json(tasks);
 });
 
 app.post('/identified/saveData', (req, res) => {
     const token = req.headers.authorization;
-    if (!token) return res.status(401).json({ error: 'Sem token' });
+    if (!token) return res.status(401).json({ error: 'Token ausente' });
 
     const { description } = req.body;
-    const id = tasks.length + 1;
-    tasks.push({ id, taskData: { description } });
-    return res.json({ id, taskData: { description } });
+    const newTask = {
+        id: tasks.length + 1,
+        taskData: { description: description || 'Sem descrição' }
+    };
+    tasks.push(newTask);
+    return res.json(newTask);
 });
 
-app.listen(3000, () => console.log('API rodando na porta 3000'));
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`🚀 API rodando na porta ${PORT}`));
